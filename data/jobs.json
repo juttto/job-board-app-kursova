@@ -1,0 +1,62 @@
+[
+  {
+    "id": "1",
+    "title": "Frontend Developer (React/Next.js)",
+    "company": "Tech Innovators",
+    "location": "Київ, Віддалено",
+    "salary": "$2500 - $3500",
+    "type": "Повна зайнятість",
+    "postedAt": "2024-05-15T10:00:00Z",
+    "description": "Шукаємо досвідченого Frontend розробника для роботи над продуктом світового рівня. Вимоги: відмінне знання React, Next.js, TypeScript. Розуміння архітектури сучасних веб-додатків.",
+    "requirements": ["React", "Next.js", "TypeScript", "Tailwind CSS"],
+    "logo": "https://ui-avatars.com/api/?name=Tech+Innovators&background=0D8ABC&color=fff"
+  },
+  {
+    "id": "2",
+    "title": "Middle Backend Developer (Node.js)",
+    "company": "Global Solutions Ukraine",
+    "location": "Львів, Офіс",
+    "salary": "$2000 - $3000",
+    "type": "Повна зайнятість",
+    "postedAt": "2024-05-18T14:30:00Z",
+    "description": "Запрошуємо Node.js розробника до нашої команди. Робота над мікросервісною архітектурою високонавантаженого проекту.",
+    "requirements": ["Node.js", "Express", "PostgreSQL", "Docker", "AWS"],
+    "logo": "https://ui-avatars.com/api/?name=Global+Solutions&background=f9a826&color=fff"
+  },
+  {
+    "id": "3",
+    "title": "UI/UX Файний Designer",
+    "company": "Creative Studio",
+    "location": "Віддалено",
+    "salary": "$1500 - $2200",
+    "type": "Проєктна робота",
+    "postedAt": "2024-05-20T09:15:00Z",
+    "description": "Потрібен талановитий дизайнер для створення сучасних та зручних інтерфейсів веб-додатків.",
+    "requirements": ["Figma", "UI/UX", "Prototyping", "Design Systems"],
+    "logo": "https://ui-avatars.com/api/?name=Creative+Studio&background=e91e63&color=fff"
+  },
+  {
+    "id": "4",
+    "title": "Junior QA Automation Engineer",
+    "company": "Quality First",
+    "location": "Київ, Гібрид",
+    "salary": "$600 - $800",
+    "type": "Повна зайнятість",
+    "postedAt": "2024-05-22T11:45:00Z",
+    "description": "Шукаємо початківця в автоматизації тестування з базовими знаннями Python/JavaScript та бажанням розвиватись.",
+    "requirements": ["Python/JS", "Selenium", "Cypress", "Manual Testing basics"],
+    "logo": "https://ui-avatars.com/api/?name=Quality+First&background=4caf50&color=fff"
+  },
+  {
+    "id": "5",
+    "title": "Fullstack Engineer (React + Python)",
+    "company": "FinTech Startup",
+    "location": "Віддалено",
+    "salary": "$3500 - $5000",
+    "type": "Повна зайнятість",
+    "postedAt": "2024-05-24T16:20:00Z",
+    "description": "Фінтех стартап шукає Fullstack розробника для розширення функціоналу платформи. Важлива увага до деталей та безпеки.",
+    "requirements": ["React", "Python", "FastAPI", "PostgreSQL", "Redis"],
+    "logo": "https://ui-avatars.com/api/?name=FinTech+Startup&background=3f51b5&color=fff"
+  }
+]
