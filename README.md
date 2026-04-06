@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Job Board (Біржа праці) - Web Application 🚀
 
-## Getting Started
+Сучасний, швидкий та адаптивний веб-додаток "Біржа праці", розроблений в рамках курсового проєкту. Створений як Single Page Application (SPA), проєкт поєднує роботодавців та кандидатів, пропонуючи зручний інтерфейс для публікації вакансій та пошуку роботи.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 📑 Зміст
+1. [Особливості (Features)](#-особливості-features)
+2. [Технологічний Стек](#-технологічний-стек)
+3. [Архітектура Даних (Mock Backend)](#-архітектура-даних-mock-backend)
+4. [Встановлення та Запуск](#-встановлення-та-запуск)
+5. [Структура Проєкту](#-структура-проєкту)
+6. [Рольова Модель](#-рольова-модель)
+
+---
+
+## ✨ Особливості (Features)
+
+**Для Кандидатів (Шукачів роботи):**
+- 🔍 Пошук вакансій за ключовими словами та гнучка система фільтрації.
+- 💾 Збереження цікавих вакансій у списки обраного ("Saved Jobs").
+- 📝 Легке створення професійного цифрового резюме (освіта, навички, досвід).
+- ✉️ Інтерактивний "Відгук" на вакансію (в один клік).
+- 📊 Особистий кабінет з метриками та відслідковуванням відгуків.
+
+**Для Роботодавців:**
+- 🏢 Публікація нових вакансій за допомогою багатоетапної валідованої форми.
+- 🗑️ Управління списком власних вакансій (створення, перегляд, видалення).
+- 👥 Перевірка списку кандидатів, що відгукнулися на конкретну посаду.
+- 📖 Доступ до загального глобального каталогу всіх кандидатів на платформі.
+
+**Технічні особливості (UI/UX):**
+- 🌗 Вбудована підтримка Темної/Світлої теми з системною синхронізацією.
+- 🍞 Власна кастомна система сповіщень (Toast Notifications) без сторонніх бібліотек.
+- 🛡️ Захищені приватні маршрути (Route Guards) та перевірка авторизації (RBAC).
+
+---
+
+## 🛠 Технологічний Стек
+
+*   **Frontend-Ядро:** React 19 + Next.js 15 (App Router Paradigm)
+*   **Стилізація:** Tailwind CSS + CSS Змінні для повної кастомізації теми
+*   **Тематизація:** `next-themes` (ThemeProvider)
+*   **Іконки:** `lucide-react`
+*   **Управління Глобальним Станом:** React Context API (`AuthContext`, `ToastContext`)
+*   **Імітація Бази Даних:** Window `localStorage` (асинхронна обгортка через `Promise`)
+
+---
+
+## 💾 Архітектура Даних (Mock Backend)
+
+Оскільки проєкт зосереджений на клієнтській стороні (Frontend), серверну логіку (REST API) імітовано за допомогою допоміжного файлу `src/utils/api.js`. Всі дані записуються у пам'ять браузера (`localStorage`), тому стан зберігається після перезавантаження сторінки.
+
+**Ключові "таблиці" бази даних (LocalStorage Keys):**
+*   `jobboard_users_list` - Акаунти користувачів (email, password, role).
+*   `jobboard_local_jobs` - Вакансії, створені користувачами (роботодавцями).
+*   `jobboard_saved_jobs_[UID]` - Обрані вакансії для конкретного кандидата.
+*   `jobboard_applications_[JobID]` - Списки відгуків на вакансію.
+
+*Детальніше архітектура описана у файлі `project_documentation.md`.*
+
+---
+
+## 🚀 Встановлення та Запуск
+
+Проєкт готовий для запуску в локальному середовищі або для розгортання на сумісних платформах (Vercel, Netlify).
+
+### Вимоги:
+- Node.js (Версія 18.x або новіша)
+- npm, yarn або pnpm
+
+### Кроки для запуску:
+1. Завантажте або клонуйте репозиторій:
+   ```bash
+   git clone <url-репозиторію>
+   cd job-board
+   ```
+
+2. Встановіть усі необхідні npm-залежності:
+   ```bash
+   npm install
+   ```
+
+3. Запустіть Development Server:
+   ```bash
+   npm run dev
+   ```
+
+4. Відкрийте браузер за адресою: [http://localhost:3000](http://localhost:3000)
+
+**Важливо:** Щоб скинути базу даних додатку до заводських налаштувань, відкрийте консоль розробника у браузері (`F12`), перейдіть у вкладку `Application` -> `Local Storage`, та повністю очистіть його (`Clear All`).
+
+---
+
+## 📂 Структура Проєкту
+
+```
+/src
+  /app           # Роути Next.js (/, /jobs, /profile, /companies, /login)
+  /components    # UI Модулі (Header, JobCard, Button)
+  /context       # Глобальні Провайдери (AuthContext, ToastContext)
+  /data          # Базовий JSON-набір вакасній для першого запуску
+  /utils         # Бізнес логіка та LocalStorage API CRUD функції
+/public          # Картинки та інші статчні ресурси
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🔒 Рольова Модель
+Система безпеки побудована навколо `AuthContext` та перевірок `user.role` (Employer або Candidate). Кожен раз при переході на захищену сторінку, як-от `/profile` або `/post-job`, хук `useAuth` перевіряє права доступу і при їх відсутності виконує миттєвий `router.push('/login')` або рендерить екран доступу заборонено.
