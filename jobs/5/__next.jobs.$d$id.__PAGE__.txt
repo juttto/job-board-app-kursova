@@ -2,5 +2,5 @@
 2:I[50705,["/job-board-app-kursova/_next/static/chunks/0c88076459d24607.js","/job-board-app-kursova/_next/static/chunks/100186b13264a939.js","/job-board-app-kursova/_next/static/chunks/64c1f56873e62856.js","/job-board-app-kursova/_next/static/chunks/89143a604b254fae.js"],"default"]
 3:I[97367,["/job-board-app-kursova/_next/static/chunks/ff1a16fafef87110.js","/job-board-app-kursova/_next/static/chunks/d2be314c3ece3fbe.js"],"OutletBoundary"]
 4:"$Sreact.suspense"
-0:{"buildId":"Fyf_S_oE4Xzob-Ip6ydJP","rsc":["$","$1","c",{"children":[["$","$L2",null,{"jobId":"5"}],[["$","script","script-0",{"src":"/job-board-app-kursova/_next/static/chunks/89143a604b254fae.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"xmYyi_RzYCfvjKLIV9BcO","rsc":["$","$1","c",{"children":[["$","$L2",null,{"jobId":"5"}],[["$","script","script-0",{"src":"/job-board-app-kursova/_next/static/chunks/89143a604b254fae.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
 5:null
