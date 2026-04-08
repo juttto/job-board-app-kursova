@@ -11,7 +11,10 @@ service cloud.firestore {
     }
 
     function roleIs(role) {
-      return isSignedIn() && userData(request.auth.uid).role == role;
+      // Якщо документа користувача ще немає — роль не визначена, доступ забороняємо.
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userData(request.auth.uid).role == role;
     }
 
     function isEmployer() {
