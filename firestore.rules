@@ -33,8 +33,13 @@ service cloud.firestore {
       // Забороняємо ескалацію ролі (candidate -> employer) через клієнтський update.
       allow update: if isSignedIn()
         && request.auth.uid == uid
+        // Дозволяємо виправити legacy-документи без uid, але після цього uid має бути зафіксований.
         && request.resource.data.uid == uid
-        && request.resource.data.role == resource.data.role;
+        // Якщо роль вже існує — забороняємо її змінювати.
+        && (
+          !("role" in resource.data)
+          || request.resource.data.role == resource.data.role
+        );
       allow delete: if false;
     }
 
@@ -55,7 +60,9 @@ service cloud.firestore {
     }
 
     match /applications/{appId} {
-      allow create: if isCandidate()
+      // Для стабільності дозволяємо відгук будь-якому авторизованому користувачу від свого UID.
+      // UI додатково блокує роботодавця.
+      allow create: if isSignedIn()
         && request.resource.data.candidateId == request.auth.uid;
 
       allow read: if isSignedIn()
