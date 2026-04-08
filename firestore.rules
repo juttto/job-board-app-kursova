@@ -71,7 +71,13 @@ service cloud.firestore {
       allow read: if isEmployer()
         && get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.employerId == request.auth.uid;
 
-      allow update, delete: if false;
+      // Роботодавець може змінювати статус відгуку лише на свої вакансії.
+      allow update: if isEmployer()
+        && get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.employerId == request.auth.uid
+        && request.resource.data.jobId == resource.data.jobId
+        && request.resource.data.candidateId == resource.data.candidateId;
+
+      allow delete: if false;
     }
   }
 }

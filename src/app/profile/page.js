@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Container } from "@/components/container";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, LogOut, Briefcase, FileText, Bookmark, Settings, Trash2, MapPin, Clock, Users } from "lucide-react";
+import { User as UserIcon, LogOut, Briefcase, FileText, Bookmark, Settings, Trash2, MapPin, Clock, Users, Mail, Phone, CheckCircle2, XCircle } from "lucide-react";
 import { getJobs, deleteLocalJob } from "@/utils/api";
 import Link from "next/link";
 import { jobDetailHref } from "@/lib/routes";
@@ -21,6 +21,8 @@ export default function ProfilePage() {
     const [loadingSaved, setLoadingSaved] = useState(false);
     const [jobApplications, setJobApplications] = useState({}); // { [jobId]: [array of applications] }
     const [hasResume, setHasResume] = useState(false);
+    const [expandedApplicationId, setExpandedApplicationId] = useState(null);
+    const [updatingApplicationId, setUpdatingApplicationId] = useState(null);
 
     useEffect(() => {
         if (loading) return; // Чекаємо завершення ініціалізації AuthContext
@@ -112,6 +114,32 @@ export default function ProfilePage() {
             setSavedJobs(prev => prev.filter(job => String(job.id) !== String(id)));
         } catch(error) {
             console.error("Error unsaving job:", error);
+        }
+    };
+
+    const handleApplicationStatusUpdate = async (jobId, applicationId, status) => {
+        try {
+            setUpdatingApplicationId(applicationId);
+            const { db } = await import("@/lib/firebase");
+            const { doc, updateDoc } = await import("firebase/firestore");
+
+            await updateDoc(doc(db, "applications", applicationId), {
+                status,
+                reviewedAt: new Date().toISOString(),
+                reviewedBy: user.uid,
+            });
+
+            setJobApplications((prev) => ({
+                ...prev,
+                [jobId]: (prev[jobId] || []).map((app) =>
+                    app.id === applicationId ? { ...app, status } : app
+                ),
+            }));
+        } catch (error) {
+            console.error("Error updating application status:", error);
+            alert("Не вдалося оновити статус відгуку.");
+        } finally {
+            setUpdatingApplicationId(null);
         }
     };
 
@@ -306,27 +334,118 @@ export default function ProfilePage() {
                                                         </span>
                                                     </div>
                                                     <div className="divide-y">
-                                                        {jobApplications[job.id].map((app, idx) => (
-                                                            <div key={idx} className="p-5 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center hover:bg-muted/5 transition-colors">
-                                                                <div>
-                                                                    <div className="font-medium text-lg mb-1">
-                                                                        {app.resume?.fullName || app.email}
+                                                        {jobApplications[job.id].map((app) => (
+                                                            <div key={app.id} className="p-5 hover:bg-muted/5 transition-colors">
+                                                                <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                                                                    <div>
+                                                                        <div className="font-medium text-lg mb-1">
+                                                                            {app.resume?.fullName || app.email}
+                                                                        </div>
+                                                                        {app.resume?.title && (
+                                                                            <div className="text-primary text-sm mb-2">{app.resume.title}</div>
+                                                                        )}
+                                                                        <div className="text-sm text-muted-foreground">
+                                                                            Відгук від: {new Date(app.date).toLocaleDateString("uk-UA", { hour: "2-digit", minute: "2-digit" })}
+                                                                        </div>
                                                                     </div>
-                                                                    {app.resume?.title && (
-                                                                        <div className="text-primary text-sm mb-2">{app.resume.title}</div>
-                                                                    )}
-                                                                    <div className="text-sm text-muted-foreground">
-                                                                        Відгук від: {new Date(app.date).toLocaleDateString('uk-UA', { hour: '2-digit', minute: '2-digit' })}
+
+                                                                    <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
+                                                                        <span
+                                                                            className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                                                                                app.status === "accepted"
+                                                                                    ? "bg-green-500/15 text-green-700"
+                                                                                    : app.status === "rejected"
+                                                                                      ? "bg-red-500/15 text-red-700"
+                                                                                      : "bg-blue-500/15 text-blue-700"
+                                                                            }`}
+                                                                        >
+                                                                            {app.status === "accepted"
+                                                                                ? "Підтверджено"
+                                                                                : app.status === "rejected"
+                                                                                  ? "Відхилено"
+                                                                                  : "Новий"}
+                                                                        </span>
+
+                                                                        {app.resume?.fullName ? (
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    setExpandedApplicationId(
+                                                                                        expandedApplicationId === app.id ? null : app.id
+                                                                                    )
+                                                                                }
+                                                                                className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md text-sm font-medium hover:bg-secondary/80 transition-colors"
+                                                                            >
+                                                                                <FileText className="w-4 h-4" />
+                                                                                {expandedApplicationId === app.id ? "Сховати резюме" : "Переглянути резюме"}
+                                                                            </button>
+                                                                        ) : (
+                                                                            <span className="text-sm text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-md">
+                                                                                Профіль не заповнено
+                                                                            </span>
+                                                                        )}
                                                                     </div>
                                                                 </div>
-                                                                {app.resume?.fullName ? (
-                                                                    <button className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md text-sm font-medium hover:bg-secondary/80 transition-colors">
-                                                                        <FileText className="w-4 h-4" /> Переглянути резюме
-                                                                    </button>
-                                                                ) : (
-                                                                    <span className="text-sm text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-md">
-                                                                        Профіль не заповнено
-                                                                    </span>
+
+                                                                {expandedApplicationId === app.id && app.resume?.fullName && (
+                                                                    <div className="mt-4 border rounded-lg p-4 bg-muted/20 space-y-4">
+                                                                        <div>
+                                                                            <div className="font-semibold text-base">{app.resume.fullName}</div>
+                                                                            {app.resume.title && (
+                                                                                <div className="text-sm text-primary mt-1">{app.resume.title}</div>
+                                                                            )}
+                                                                            {app.resume.about && (
+                                                                                <p className="text-sm text-muted-foreground mt-2 whitespace-pre-line">{app.resume.about}</p>
+                                                                            )}
+                                                                        </div>
+
+                                                                        <div className="flex flex-wrap gap-2">
+                                                                            {(app.resume.skills || []).map((skill, i) => (
+                                                                                <span key={i} className="text-xs bg-background border px-2.5 py-1 rounded-full">
+                                                                                    {skill}
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+
+                                                                        <div className="flex flex-wrap gap-3 text-sm">
+                                                                            {app.email && (
+                                                                                <a
+                                                                                    href={`mailto:${encodeURIComponent(app.email)}`}
+                                                                                    className="inline-flex items-center gap-2 bg-background border px-3 py-2 rounded-md hover:bg-muted transition-colors"
+                                                                                >
+                                                                                    <Mail className="w-4 h-4" />
+                                                                                    Написати на Email
+                                                                                </a>
+                                                                            )}
+                                                                            {app.resume.phone && (
+                                                                                <a
+                                                                                    href={`tel:${app.resume.phone}`}
+                                                                                    className="inline-flex items-center gap-2 bg-background border px-3 py-2 rounded-md hover:bg-muted transition-colors"
+                                                                                >
+                                                                                    <Phone className="w-4 h-4" />
+                                                                                    Зателефонувати
+                                                                                </a>
+                                                                            )}
+                                                                        </div>
+
+                                                                        <div className="flex flex-wrap gap-2">
+                                                                            <button
+                                                                                onClick={() => handleApplicationStatusUpdate(job.id, app.id, "accepted")}
+                                                                                disabled={updatingApplicationId === app.id}
+                                                                                className="inline-flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 disabled:opacity-60 transition-colors text-sm"
+                                                                            >
+                                                                                <CheckCircle2 className="w-4 h-4" />
+                                                                                Підтвердити
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleApplicationStatusUpdate(job.id, app.id, "rejected")}
+                                                                                disabled={updatingApplicationId === app.id}
+                                                                                className="inline-flex items-center gap-2 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 disabled:opacity-60 transition-colors text-sm"
+                                                                            >
+                                                                                <XCircle className="w-4 h-4" />
+                                                                                Відхилити
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         ))}
