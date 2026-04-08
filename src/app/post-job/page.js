@@ -40,34 +40,53 @@ export default function PostJobPage() {
         );
     }
 
+    if (user.role !== "employer") {
+        return (
+            <div className="flex-1 py-20 flex flex-col items-center justify-center text-center px-4">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                    <Briefcase className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Доступ заборонено</h2>
+                <p className="text-muted-foreground mb-6 max-w-md">
+                    Розміщувати вакансії можуть лише акаунти з роллю «Роботодавець».
+                </p>
+                <Link href="/profile" className="bg-primary text-primary-foreground px-6 py-2 rounded-md font-medium hover:bg-primary/90 transition-colors">
+                    У кабінет
+                </Link>
+            </div>
+        );
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
-        // Імітація збереження на "бекенд"
-        await new Promise(resolve => setTimeout(resolve, 800));
+        try {
+            const { db } = await import("@/lib/firebase");
+            const { collection, addDoc } = await import("firebase/firestore");
 
-        const newJob = {
-            id: Date.now(),
-            title,
-            company,
-            location,
-            salary,
-            type,
-            description,
-            requirements: requirements.split("\n").filter(req => req.trim().length > 0),
-            postedAt: new Date().toISOString(),
-            // Можемо також додати ідентифікатор роботодавця
-            employerId: user.uid
-        };
+            const newJob = {
+                title,
+                company,
+                location,
+                salary,
+                type,
+                description,
+                requirements: requirements.split("\n").filter(req => req.trim().length > 0),
+                postedAt: new Date().toISOString(),
+                employerId: user.uid
+            };
 
-        const existingJobs = JSON.parse(localStorage.getItem("jobboard_local_jobs") || "[]");
-        existingJobs.unshift(newJob); // Додаємо на початок
-        localStorage.setItem("jobboard_local_jobs", JSON.stringify(existingJobs));
+            await addDoc(collection(db, "jobs"), newJob);
 
-        setLoading(false);
-        showToast("Вакансію успішно опубліковано!", "success");
-        router.push("/jobs");
+            showToast("Вакансію успішно опубліковано!", "success");
+            router.push("/jobs");
+        } catch (error) {
+            console.error("Error adding document: ", error);
+            showToast("Помилка публікації. Спробуйте пізніше.", "error");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

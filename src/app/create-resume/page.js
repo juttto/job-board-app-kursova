@@ -28,19 +28,23 @@ export default function CreateResumePage() {
 
     useEffect(() => {
         if (user) {
-            // Load existing resume if any
-            const savedResume = localStorage.getItem(`jobboard_resume_${user.uid}`);
-            if (savedResume) {
-                const data = JSON.parse(savedResume);
-                setFullName(data.fullName || "");
-                setTitle(data.title || "");
-                setAbout(data.about || "");
-                setPhone(data.phone || "");
-                setLocation(data.location || "");
-                setSkills(data.skills ? data.skills.join(", ") : "");
-                if (data.experiences && data.experiences.length > 0) setExperiences(data.experiences);
-                if (data.education && data.education.length > 0) setEducation(data.education);
-            }
+            import("@/lib/firebase").then(({ db }) => {
+                import("firebase/firestore").then(({ doc, getDoc }) => {
+                    getDoc(doc(db, "resumes", user.uid)).then((docSnap) => {
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            setFullName(data.fullName || "");
+                            setTitle(data.title || "");
+                            setAbout(data.about || "");
+                            setPhone(data.phone || "");
+                            setLocation(data.location || "");
+                            setSkills(data.skills ? data.skills.join(", ") : "");
+                            if (data.experiences && data.experiences.length > 0) setExperiences(data.experiences);
+                            if (data.education && data.education.length > 0) setEducation(data.education);
+                        }
+                    }).catch(console.error);
+                });
+            });
         }
     }, [user]);
 
@@ -124,25 +128,20 @@ export default function CreateResumePage() {
             updatedAt: new Date().toISOString()
         };
 
-        // Затримка для імітації мережі
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        localStorage.setItem(`jobboard_resume_${user.uid}`, JSON.stringify(resumeData));
-
-        // Також можна зберегти в загальний масив кандидатів (для сторінки "Кандидати")
-        const allCandidates = JSON.parse(localStorage.getItem("jobboard_candidates") || "[]");
-        const existingIndex = allCandidates.findIndex(c => c.userId === user.uid);
-
-        if (existingIndex >= 0) {
-            allCandidates[existingIndex] = resumeData;
-        } else {
-            allCandidates.push(resumeData);
+        try {
+            const { db } = await import("@/lib/firebase");
+            const { doc, setDoc } = await import("firebase/firestore");
+            
+            await setDoc(doc(db, "resumes", user.uid), resumeData);
+            
+            showToast("Резюме успішно збережено!", "success");
+            router.push("/profile");
+        } catch (error) {
+            console.error("Error saving resume:", error);
+            showToast("Помилка збереження. Спробуйте пізніше.", "error");
+        } finally {
+            setLoading(false);
         }
-        localStorage.setItem("jobboard_candidates", JSON.stringify(allCandidates));
-
-        setLoading(false);
-        showToast("Резюме успішно збережено!", "success");
-        router.push("/profile");
     };
 
     return (
@@ -162,7 +161,7 @@ export default function CreateResumePage() {
                             <h2 className="text-xl font-semibold mb-6 pb-2 border-b">Особиста інформація</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Ім'я та прізвище *</label>
+                                    <label className="block text-sm font-medium mb-2">Ім&apos;я та прізвище *</label>
                                     <input
                                         type="text" required
                                         value={fullName} onChange={e => setFullName(e.target.value)}
@@ -269,7 +268,7 @@ export default function CreateResumePage() {
                                                 />
                                             </div>
                                             <div className="md:col-span-2">
-                                                <label className="block text-xs font-medium mb-1">Опис обов'язків</label>
+                                                <label className="block text-xs font-medium mb-1">Опис обов&apos;язків</label>
                                                 <textarea
                                                     rows={3}
                                                     value={exp.description} onChange={e => updateExperience(exp.id, 'description', e.target.value)}

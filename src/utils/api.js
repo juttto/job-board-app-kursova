@@ -1,27 +1,36 @@
+import { db } from "@/lib/firebase";
+import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
+import { getStaticJobsJsonUrl } from "@/lib/site";
+
 export async function getJobs() {
     try {
-        // Fetch runs in browser (components will be converted to Client Components)
-        const response = await fetch('/data/jobs.json', {
-            cache: 'no-store'
+        // Fetch static jobs
+        let initialJobs = [];
+        try {
+            const isClient = typeof window !== "undefined";
+            if (isClient) {
+                const url = getStaticJobsJsonUrl();
+                const response = await fetch(url, { cache: "no-store" });
+                if (response.ok) {
+                    initialJobs = await response.json();
+                }
+            }
+        } catch (e) {
+            console.error("Не вдалося завантажити статичні вакансії:", e);
+        }
+
+        // Fetch jobs from Firestore
+        let firestoreJobs = [];
+        const querySnapshot = await getDocs(collection(db, "jobs"));
+        querySnapshot.forEach((doc) => {
+            firestoreJobs.push({
+                id: doc.id,
+                ...doc.data()
+            });
         });
 
-        let initialJobs = [];
-        if (response.ok) {
-            initialJobs = await response.json();
-        } else {
-            console.error(`HTTP error! status: ${response.status}`);
-        }
-
-        // Merge with local storage jobs
-        let localJobs = [];
-        if (typeof window !== 'undefined') {
-            const localData = localStorage.getItem('jobboard_local_jobs');
-            if (localData) {
-                localJobs = JSON.parse(localData);
-            }
-        }
-
-        return [...localJobs, ...initialJobs];
+        // Вважаємо всі static Jobs як дефолтні, якщо треба
+        return [...firestoreJobs, ...initialJobs];
     } catch (error) {
         console.error("Помилка завантаження вакансій:", error);
         return [];
@@ -30,6 +39,7 @@ export async function getJobs() {
 
 export async function getJobById(id) {
     try {
+        // Спочатку спробуємо знайти в статичних вакансіях
         const jobs = await getJobs();
         return jobs.find(job => String(job.id) === String(id)) || null;
     } catch (error) {
@@ -39,14 +49,11 @@ export async function getJobById(id) {
 }
 
 export async function deleteLocalJob(id) {
-    if (typeof window !== 'undefined') {
-        const localData = localStorage.getItem('jobboard_local_jobs');
-        if (localData) {
-            let localJobs = JSON.parse(localData);
-            localJobs = localJobs.filter(job => String(job.id) !== String(id));
-            localStorage.setItem('jobboard_local_jobs', JSON.stringify(localJobs));
-            return true;
-        }
+    try {
+        await deleteDoc(doc(db, "jobs", id));
+        return true;
+    } catch (error) {
+        console.error("Error deleting job from Firestore:", error);
+        return false;
     }
-    return false;
 }

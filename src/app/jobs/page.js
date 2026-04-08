@@ -28,10 +28,12 @@ function JobsContent() {
         });
     }, []);
 
-    // Also update searchQuery if URL changes manually
+    // Синхронізація поля пошуку з URL (наприклад, «Назад» у браузері)
+    /* eslint-disable react-hooks/set-state-in-effect -- потрібно оновити controlled input при зміні searchParams */
     useEffect(() => {
         setSearchQuery(searchParams.get("q") || "");
     }, [searchParams]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const handleTypeChange = (type) => {
         setSelectedTypes(prev =>

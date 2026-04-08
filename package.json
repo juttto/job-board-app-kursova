@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "predeploy": "npm run build",
-    "deploy": "npx gh-pages -d out"
+    "deploy": "npx gh-pages -d out -t"
   },
   "dependencies": {
     "firebase": "^12.10.0",

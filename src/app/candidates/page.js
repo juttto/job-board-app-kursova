@@ -5,6 +5,7 @@ import { Container } from "@/components/container";
 import { Users, FileText, MapPin, Mail, Phone } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import { getDemoResumesJsonUrl } from "@/lib/site";
 
 export default function CandidatesPage() {
     const { user } = useAuth();
@@ -12,13 +13,29 @@ export default function CandidatesPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Завантажуємо зі збережених в localStorage масивів кандидатів
-        const allCandidates = JSON.parse(localStorage.getItem("jobboard_candidates") || "[]");
-        setCandidates(allCandidates);
-        setLoading(false);
+        import("@/lib/firebase").then(({ db }) => {
+            import("firebase/firestore").then(({ collection, getDocs }) => {
+                getDocs(collection(db, "resumes")).then(snapshot => {
+                    const loaded = [];
+                    snapshot.forEach(doc => loaded.push(doc.data()));
+                    if (loaded.length > 0) {
+                        setCandidates(loaded);
+                        setLoading(false);
+                        return;
+                    }
+
+                    // Якщо Firestore поки порожній — показуємо демо-резюме для “живого” вигляду на GH Pages.
+                    fetch(getDemoResumesJsonUrl(), { cache: "no-store" })
+                        .then((r) => (r.ok ? r.json() : []))
+                        .then((demo) => setCandidates(Array.isArray(demo) ? demo : []))
+                        .catch(() => setCandidates([]))
+                        .finally(() => setLoading(false));
+                }).catch(console.error);
+            });
+        });
     }, []);
 
-    if (!user) {
+    if (!user || user.role !== "employer") {
         return (
             <div className="flex-1 py-16 bg-muted/5">
                 <Container>

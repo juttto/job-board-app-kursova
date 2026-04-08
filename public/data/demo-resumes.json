@@ -1,0 +1,58 @@
+[
+  {
+    "userId": "demo_candidate_1",
+    "email": "olena.demo@example.com",
+    "fullName": "Олена Демченко",
+    "title": "Frontend Developer (React/Next.js)",
+    "about": "2+ роки комерційного досвіду з React та Next.js. Люблю акуратний UI, продуктивність і доступність. Працювала над e-commerce та внутрішніми адмін-панелями.",
+    "phone": "+380 (67) 000-00-01",
+    "location": "Київ, Україна",
+    "skills": ["JavaScript", "React", "Next.js", "Tailwind CSS", "REST API", "Git"],
+    "experiences": [
+      {
+        "id": 1,
+        "company": "ShopNova",
+        "position": "Frontend Developer",
+        "period": "2023 — 2025",
+        "description": "Розробка UI компонентів, інтеграція API, оптимізація часу завантаження сторінок."
+      }
+    ],
+    "education": [
+      {
+        "id": 1,
+        "institution": "КПІ ім. Ігоря Сікорського",
+        "degree": "Комп'ютерні науки",
+        "year": "2022"
+      }
+    ],
+    "updatedAt": "2026-04-01T10:00:00Z"
+  },
+  {
+    "userId": "demo_candidate_2",
+    "email": "andrii.demo@example.com",
+    "fullName": "Андрій Литвин",
+    "title": "QA Automation Engineer (Python)",
+    "about": "Автоматизація тестування веб-додатків: UI + API. Пишу стабільні автотести, налаштовую CI і допомагаю команді швидко знаходити регресії.",
+    "phone": "+380 (67) 000-00-02",
+    "location": "Львів, Україна",
+    "skills": ["Python", "Pytest", "Playwright", "Selenium", "Postman", "CI/CD"],
+    "experiences": [
+      {
+        "id": 1,
+        "company": "LogiCore",
+        "position": "QA Automation Engineer",
+        "period": "2022 — 2025",
+        "description": "UI/API автотести, інтеграція з GitHub Actions, тест-репорти та аналіз дефектів."
+      }
+    ],
+    "education": [
+      {
+        "id": 1,
+        "institution": "ЛНУ ім. Івана Франка",
+        "degree": "Прикладна математика",
+        "year": "2021"
+      }
+    ],
+    "updatedAt": "2026-04-02T12:00:00Z"
+  }
+]

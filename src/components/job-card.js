@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Briefcase, MapPin, DollarSign, Clock } from "lucide-react";
+import { jobDetailHref } from "@/lib/routes";
 
 export function JobCard({ job }) {
     return (
@@ -16,7 +17,7 @@ export function JobCard({ job }) {
                 <div>
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                         <div>
-                            <Link href={`/jobs/${job.id}`} className="font-semibold text-lg hover:text-primary transition-colors line-clamp-1">
+                            <Link href={jobDetailHref(job.id)} className="font-semibold text-lg hover:text-primary transition-colors line-clamp-1">
                                 {job.title}
                             </Link>
                             <p className="text-sm text-muted-foreground mt-1">{job.company}</p>

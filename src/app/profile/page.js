@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 import { User as UserIcon, LogOut, Briefcase, FileText, Bookmark, Settings, Trash2, MapPin, Clock, Users } from "lucide-react";
 import { getJobs, deleteLocalJob } from "@/utils/api";
 import Link from "next/link";
+import { jobDetailHref } from "@/lib/routes";
 
 export default function ProfilePage() {
-    const { user, logout, loading } = useAuth();
+    const { user, logout, loading, refreshUser } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("overview");
     const [myJobs, setMyJobs] = useState([]);
@@ -31,42 +32,52 @@ export default function ProfilePage() {
 
         const isEmployer = user.role === "employer";
 
-        if (isEmployer) {
-            setLoadingJobs(true);
-            getJobs().then(jobs => {
+        const loadData = async () => {
+            const { db } = await import("@/lib/firebase");
+            const { collection, getDocs, doc, getDoc, query, where } = await import("firebase/firestore");
+
+            if (isEmployer) {
+                setLoadingJobs(true);
+                const jobs = await getJobs();
                 const employerJobs = jobs.filter(job => job.employerId === user.uid);
                 setMyJobs(employerJobs);
 
-                // Завантаження відгуків на власні вакансії
+                // Завантаження відгуків на власні вакансії через Promise.all
                 const appsMap = {};
-                employerJobs.forEach(job => {
-                    const applications = JSON.parse(localStorage.getItem(`jobboard_applications_${job.id}`) || "[]");
-                    if (applications.length > 0) {
-                        appsMap[job.id] = applications;
-                    }
-                });
+                if (employerJobs.length > 0) {
+                    const promises = employerJobs.map(async (job) => {
+                        const q = query(collection(db, "applications"), where("jobId", "==", job.id));
+                        const snap = await getDocs(q);
+                        const apps = [];
+                        snap.forEach((d) => apps.push({ id: d.id, ...d.data() }));
+                        if (apps.length > 0) {
+                            appsMap[job.id] = apps;
+                        }
+                    });
+                    await Promise.all(promises);
+                }
+                
                 setJobApplications(appsMap);
                 setLoadingJobs(false);
-            });
-        } else {
-            // Кандидат
-            setLoadingSaved(true);
-            const savedJobIds = JSON.parse(localStorage.getItem(`jobboard_saved_jobs_${user.uid}`) || "[]");
-
-            // Перевіряємо чи є резюме
-            const resume = localStorage.getItem(`jobboard_resume_${user.uid}`);
-            setHasResume(!!resume);
-
-            if (savedJobIds.length > 0) {
-                getJobs().then(allJobs => {
-                    const saved = allJobs.filter(job => savedJobIds.includes(job.id));
-                    setSavedJobs(saved);
-                    setLoadingSaved(false);
-                });
             } else {
+                // Кандидат
+                setLoadingSaved(true);
+                const savedJobIds = user.savedJobs || []; // З об'єкта користувача AuthContext
+
+                // Перевіряємо чи є резюме
+                const resumeSnap = await getDoc(doc(db, "resumes", user.uid));
+                setHasResume(resumeSnap.exists());
+
+                if (savedJobIds.length > 0) {
+                    const allJobs = await getJobs();
+                    const saved = allJobs.filter(job => savedJobIds.includes(String(job.id)));
+                    setSavedJobs(saved);
+                }
                 setLoadingSaved(false);
             }
-        }
+        };
+
+        loadData();
     }, [user, loading, router]);
 
     if (loading) {
@@ -91,11 +102,17 @@ export default function ProfilePage() {
         }
     };
 
-    const handleUnsaveJob = (id) => {
-        const savedKey = `jobboard_saved_jobs_${user.uid}`;
-        const newSavedIds = savedJobs.filter(job => String(job.id) !== String(id)).map(job => String(job.id));
-        localStorage.setItem(savedKey, JSON.stringify(newSavedIds));
-        setSavedJobs(prev => prev.filter(job => String(job.id) !== String(id)));
+    const handleUnsaveJob = async (id) => {
+        try {
+            const { db } = await import("@/lib/firebase");
+            const { doc, updateDoc, arrayRemove } = await import("firebase/firestore");
+            
+            await updateDoc(doc(db, "users", user.uid), { savedJobs: arrayRemove(String(id)) });
+            await refreshUser?.();
+            setSavedJobs(prev => prev.filter(job => String(job.id) !== String(id)));
+        } catch(error) {
+            console.error("Error unsaving job:", error);
+        }
     };
 
     const isEmployer = user.role === "employer";
@@ -234,7 +251,7 @@ export default function ProfilePage() {
                                             {myJobs.map(job => (
                                                 <div key={job.id} className="border rounded-lg p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-border hover:shadow-sm transition-all duration-200">
                                                     <div>
-                                                        <Link href={`/jobs/${job.id}`} className="font-semibold text-lg hover:text-primary transition-colors block mb-1">
+                                                        <Link href={jobDetailHref(job.id)} className="font-semibold text-lg hover:text-primary transition-colors block mb-1">
                                                             {job.title}
                                                         </Link>
                                                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -335,7 +352,7 @@ export default function ProfilePage() {
                                             {savedJobs.map(job => (
                                                 <div key={job.id} className="border rounded-lg p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-primary/30 hover:shadow-sm transition-all duration-200">
                                                     <div>
-                                                        <Link href={`/jobs/${job.id}`} className="font-semibold text-lg hover:text-primary transition-colors block mb-1">
+                                                        <Link href={jobDetailHref(job.id)} className="font-semibold text-lg hover:text-primary transition-colors block mb-1">
                                                             {job.title}
                                                         </Link>
                                                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
@@ -349,7 +366,7 @@ export default function ProfilePage() {
                                                     </div>
                                                     <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto mt-3 sm:mt-0">
                                                         <Link
-                                                            href={`/jobs/${job.id}`}
+                                                            href={jobDetailHref(job.id)}
                                                             className="flex justify-center w-full sm:w-auto px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                                                         >
                                                             Перейти

@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userData(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+
+    function roleIs(role) {
+      return isSignedIn() && userData(request.auth.uid).role == role;
+    }
+
+    function isEmployer() {
+      return roleIs("employer");
+    }
+
+    function isCandidate() {
+      return roleIs("candidate");
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid;
+      // Забороняємо ескалацію ролі (candidate -> employer) через клієнтський update.
+      allow update: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.role == resource.data.role;
+      allow delete: if false;
+    }
+
+    match /jobs/{jobId} {
+      allow read: if true;
+
+      allow create: if isEmployer()
+        && request.resource.data.employerId == request.auth.uid;
+
+      allow update, delete: if isEmployer()
+        && resource.data.employerId == request.auth.uid;
+    }
+
+    match /resumes/{uid} {
+      allow create, update: if isCandidate() && request.auth.uid == uid;
+      allow read: if isEmployer();
+      allow delete: if isCandidate() && request.auth.uid == uid;
+    }
+
+    match /applications/{appId} {
+      allow create: if isCandidate()
+        && request.resource.data.candidateId == request.auth.uid;
+
+      allow read: if isSignedIn()
+        && resource.data.candidateId == request.auth.uid;
+
+      allow read: if isEmployer()
+        && get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.employerId == request.auth.uid;
+
+      allow update, delete: if false;
+    }
+  }
+}
