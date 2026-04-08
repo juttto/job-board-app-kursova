@@ -23,7 +23,9 @@ export function AuthProvider({ children }) {
                     if (docSnap.exists()) {
                         setUser(docSnap.data());
                     } else {
-                        // Якщо документу немає (наприклад, помилка при реєстрації), створюємо дефолтний
+                        // Якщо документу немає (наприклад, попередній вхід без запису в Firestore),
+                        // створюємо дефолтний профіль. Це критично для Firestore rules, які
+                        // перевіряють роль користувача через /users/{uid}.
                         const newUser = {
                             uid: firebaseUser.uid,
                             email: firebaseUser.email,
@@ -31,6 +33,7 @@ export function AuthProvider({ children }) {
                             role: "candidate",
                             savedJobs: []
                         };
+                        await setDoc(docRef, newUser);
                         setUser(newUser);
                     }
                 } catch (error) {
@@ -101,6 +104,16 @@ export function AuthProvider({ children }) {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 setUser(docSnap.data());
+            } else {
+                const newUser = {
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    name: firebaseUser.displayName,
+                    role: "candidate",
+                    savedJobs: []
+                };
+                await setDoc(docRef, newUser);
+                setUser(newUser);
             }
         } catch (e) {
             console.error("Не вдалося оновити профіль користувача", e);

@@ -126,9 +126,12 @@ export default function CandidatesPage() {
                                 )}
 
                                 <div className="mt-auto pt-4 border-t">
-                                    <button className="w-full flex justify-center items-center gap-2 bg-secondary text-secondary-foreground py-2 rounded-md hover:bg-secondary/80 transition-colors text-sm font-medium">
-                                        <FileText className="w-4 h-4" /> Відкрити резюме
-                                    </button>
+                                    <a
+                                        href={`mailto:${encodeURIComponent(candidate.email)}?subject=${encodeURIComponent("Відгук на резюме в JobBoard")}`}
+                                        className="w-full flex justify-center items-center gap-2 bg-secondary text-secondary-foreground py-2 rounded-md hover:bg-secondary/80 transition-colors text-sm font-medium"
+                                    >
+                                        <FileText className="w-4 h-4" /> Написати кандидату
+                                    </a>
                                 </div>
                             </div>
                         ))}
