@@ -55,7 +55,7 @@ service cloud.firestore {
 
     match /resumes/{uid} {
       allow create, update: if isCandidate() && request.auth.uid == uid;
-      allow read: if isEmployer();
+      allow read: if isEmployer() || (isSignedIn() && request.auth.uid == uid);
       allow delete: if isCandidate() && request.auth.uid == uid;
     }
 
